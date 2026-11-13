@@ -1,0 +1,8 @@
+{
+  "key.logviewer.open": "Open Log Viewer",
+  "logviewer.title": "Logs",
+  "logviewer.filter.all": "All",
+  "logviewer.filter.chat": "Chat",
+  "logviewer.filter.warn": "Warn",
+  "logviewer.filter.error": "Error"
+}

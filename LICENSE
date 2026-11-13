@@ -19,8 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-The shader fragments under assets/legacypackfix/shaders/ and the GLSL helper
-functions in mcport/legacypackfix/LegacyTranslator are adapted from Minecraft's
-own shaders (Mojang Studios) so that old resource packs keep working; they are
-not covered by this licence.

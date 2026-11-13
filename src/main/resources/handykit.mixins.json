@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "mcport.macro.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "ChatSigningMixin",
+    "ContainerInputMixin",
+    "KeyMappingAccess",
+    "MouseHandlerMixin",
+    "RecordChatMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

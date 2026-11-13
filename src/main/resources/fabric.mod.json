@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "id": "handykit",
+  "version": "${version}",
+  "name": "Handy Kit",
+  "description": "Small client conveniences in one mod. Log viewer (F7): browse latest.log and every dated log by day and by server, search all days, jump from a hit to its place. Macros (M): left and right auto clicker, ten chat presets on keys, keyword auto replies, input recording with playback, unsigned chat. Server tabs (F6): several servers open at once in one client, a tab bar on top, each with its own world, chat and resource packs. Transfers: with ViaFabricPlus, a transfer target is joined with the version that server speaks. Legacy packs: core shaders of 1.21.x resource packs are translated for 26.3, with a vanilla fallback per pipeline.",
+  "authors": [
+    "tinymita2-pixel"
+  ],
+  "contact": {
+    "homepage": "https://github.com/tinymita2-pixel/handykit",
+    "sources": "https://github.com/tinymita2-pixel/handykit",
+    "issues": "https://github.com/tinymita2-pixel/handykit/issues"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "mcport.logviewer.LogViewerClient",
+      "mcport.macro.MacroClient",
+      "mcport.tabs.TabsClient"
+    ],
+    "modmenu": [
+      "mcport.macro.ModMenuEntry"
+    ]
+  },
+  "mixins": [
+    "handykit.mixins.json",
+    "handykit.tabs.mixins.json",
+    "handykit.transfer.mixins.json",
+    "handykit.packfix.mixins.json"
+  ],
+  "breaks": {
+    "logviewer": "*",
+    "transferdetect": "*",
+    "legacypackfix": "*"
+  },
+  "depends": {
+    "fabricloader": ">=0.19.0",
+    "fabric-api": "*",
+    "minecraft": "~26.3",
+    "java": ">=25"
+  },
+  "suggests": {
+    "viafabricplus": "*"
+  }
+}

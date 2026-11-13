@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "mcport.legacypackfix.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "CuboidItemModelWrapperMixin",
+    "NativeImageMixin",
+    "PipelineCacheMixin",
+    "PostChainMixin",
+    "ShaderConfigsMixin",
+    "ShaderManagerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "key.logviewer.open": "로그 보기",
+  "logviewer.title": "로그",
+  "logviewer.filter.all": "전체",
+  "logviewer.filter.chat": "채팅",
+  "logviewer.filter.warn": "경고",
+  "logviewer.filter.error": "오류"
+}

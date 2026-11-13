@@ -72,8 +72,15 @@
 - 처음 팩을 받은 탭은 그 팩으로 한 벌을 만드는 데 1~3초쯤 걸려요(게임은 그동안에도 돌아요). 큰 팩은 더 걸려요.
 - Iris 셰이더팩을 켜면 작은 창은 위에서 본 지도로 바뀌어요.
 
+## 소스와 빌드
+
+- 이 저장소의 `src` 가 릴리스 jar 의 소스예요. Java 25 가 있으면 `./gradlew build` (윈도는 `gradlew.bat build`)로 `build/libs/handykit-<버전>.jar` 가 나와요.
+- 포크해서 고치고 나눠도 돼요. MIT 라이선스 고지만 남겨 주세요.
+
 ## 라이선스
 
 - MIT ([LICENSE](LICENSE)).
-- 옛 리소스팩을 위한 셰이더 조각 일부는 마인크래프트 원래 셰이더(Mojang Studios)를 고쳐 쓴 것이라 MIT 대상이 아니에요.
-- ViaFabricPlus(GPL-3.0)와 Mod Menu(MIT)의 코드는 이 jar 에 들어 있지 않아요. 깔려 있을 때만 함께 동작해요.
+- 옛 리소스팩을 위한 셰이더 조각 일부는 마인크래프트 원래 셰이더(Mojang Studios)를 고쳐 쓴 것이라 MIT 대상이 아니에요([NOTICE.md](NOTICE.md)).
+- ViaFabricPlus(GPL-3.0)와 Mod Menu(MIT)의 코드는 이 저장소와 jar 에 들어 있지 않아요. 깔려 있을 때만 함께 동작해요.
+
+<sub>문제가 생기면 디스코드 0ggplant 로 연락 주세요.</sub>
