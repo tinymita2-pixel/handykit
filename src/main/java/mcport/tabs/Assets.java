@@ -224,6 +224,7 @@ public final class Assets {
    private static Field fontProvidersField;
    private static Field postChainsField;
    private static Field pipelinesField;
+   private static @Nullable Field sharedStateMap;
 
    static {
       BASE.ready = true;
@@ -789,16 +790,10 @@ public final class Assets {
       }
 
       look.values = values;
-      List<PreparableReloadListener> run = new ArrayList<>();
-      for (PreparableReloadListener listener : listeners(mc)) {
-         boolean wanted = listener instanceof ShaderManager ? look.own[SHADER]
-            : listener instanceof FontManager ? look.own[FONT]
-            : (listener instanceof AtlasManager || listener instanceof ModelManager || listener instanceof EquipmentAssetManager || listener instanceof EntityRenderDispatcher
-               || listener instanceof BlockEntityRenderDispatcher || listener instanceof ParticleResources) && look.own[VISUAL];
-         if (wanted) {
-            run.add(listener);
-         }
-      }
+      List<PreparableReloadListener> run = forLook(mc, look, listener -> listener instanceof ShaderManager ? look.own[SHADER]
+         : listener instanceof FontManager ? look.own[FONT]
+         : (listener instanceof AtlasManager || listener instanceof ModelManager || listener instanceof EquipmentAssetManager || listener instanceof EntityRenderDispatcher
+            || listener instanceof BlockEntityRenderDispatcher || listener instanceof ParticleResources) && look.own[VISUAL]);
 
       List<CompletableFuture<?>> parts = new ArrayList<>();
       Executor background = Util.backgroundExecutor();
@@ -865,6 +860,85 @@ public final class Assets {
       }));
    }
 
+   /**
+    * What runs to make a set: the game's own loading code for the parts this set has of its own, in the order a full
+    * reload runs them, together with every other reload listener of the game and of the mods (Fabric adds the mods'
+    * own when a reload starts). Those others only prepare what they share with the rest of a reload (mods hand data
+    * from one step to the next that way, and a step that does not find it fails); a mod's listener that does put
+    * something there runs in full, since what it put there may only be finished by its own loading.
+    */
+   @SuppressWarnings("unchecked")
+   private static List<PreparableReloadListener> forLook(Minecraft mc, Look look, java.util.function.Predicate<PreparableReloadListener> wanted)
+      throws ReflectiveOperationException {
+      List<PreparableReloadListener> all = new ArrayList<>(listeners(mc));
+      try {
+         Class<?> fabric = Class.forName("net.fabricmc.fabric.impl.resource.ResourceLoaderImpl");
+         all = new ArrayList<>((List<PreparableReloadListener>)fabric.getMethod("sort", PackType.class, List.class).invoke(null, PackType.CLIENT_RESOURCES, all));
+      } catch (ReflectiveOperationException | RuntimeException e) {
+         // without Fabric's own listeners: the game's
+      }
+
+      if (sharedStateMap == null) {
+         sharedStateMap = field(PreparableReloadListener.SharedState.class, "state");
+      }
+
+      PreparableReloadListener.SharedState probe = new PreparableReloadListener.SharedState(look.resources);
+      List<PreparableReloadListener> run = new ArrayList<>(all.size());
+      List<String> full = new ArrayList<>();
+      boolean any = false;
+      for (PreparableReloadListener listener : all) {
+         if (wanted.test(listener)) {
+            run.add(listener);
+            any = true;
+            continue;
+         }
+
+         boolean shares = false;
+         if (!listener.getClass().getName().startsWith("net.minecraft.")) {
+            int before = ((Map<?, ?>)sharedStateMap.get(probe)).size();
+            try {
+               listener.prepareSharedState(probe);
+            } catch (RuntimeException e) {
+               Tabs.LOGGER.debug("Reload listener {} could not prepare for a tab's resources: {}", listener.getName(), e.toString());
+            }
+
+            shares = ((Map<?, ?>)sharedStateMap.get(probe)).size() > before;
+         }
+
+         if (shares) {
+            run.add(listener);
+            full.add(listener.getName());
+         } else {
+            run.add(new Prepared(listener));
+         }
+      }
+
+      if (!full.isEmpty() && any) {
+         Tabs.trace(look + " also runs " + full);
+      }
+
+      return any ? run : List.of();
+   }
+
+   /** Another listener of a reload: it prepares what it shares with the others, and loads nothing. */
+   private record Prepared(PreparableReloadListener of) implements PreparableReloadListener {
+      @Override
+      public void prepareSharedState(PreparableReloadListener.SharedState state) {
+         this.of.prepareSharedState(state);
+      }
+
+      @Override
+      public CompletableFuture<Void> reload(PreparableReloadListener.SharedState state, Executor tasks, PreparableReloadListener.PreparationBarrier barrier, Executor main) {
+         return barrier.wait(Unit.INSTANCE).thenRun(() -> {
+         });
+      }
+
+      @Override
+      public String getName() {
+         return "handykit:prepared/" + this.of.getName();
+      }
+   }
+
    private static int langSlot() {
       for (int i = slots.length - 1; i >= 0; i--) {
          if (slots[i].part == LANG) {
@@ -897,7 +971,8 @@ public final class Assets {
          cause = cause.getCause();
       }
 
-      Tabs.LOGGER.warn("{} could not be made: {}", look, cause.toString());
+      // the whole trace: a failure here is usually another mod that expects something of a full reload
+      Tabs.LOGGER.warn("{} could not be made: {}", look, cause.toString(), cause);
       look.failed = true;
       done(look, false);
       drop(mc, look);
@@ -1034,6 +1109,11 @@ public final class Assets {
 
       long now = System.currentTimeMillis();
       for (Look look : List.copyOf(LOOKS.values())) {
+         if (!look.ready && !look.failed && !look.gone && look.started > 0 && now - look.started > 300_000L) {
+            fail(mc, look, new java.util.concurrent.TimeoutException("not done after 5 minutes"));
+            continue;
+         }
+
          boolean used = false;
          for (Tab tab : Tabs.tabs()) {
             if (tab.look == look || tab.nextLook == look) {
